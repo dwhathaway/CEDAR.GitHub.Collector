@@ -1,3 +1,3 @@
 [submodule "CEDAR.Core.Collector"]
 	path = CEDAR.Core.Collector
-	url = https://github.com/microsoft/CEDAR.Core.Collector.git
+	url = https://github.com/dwhathaway/CEDAR.Core.Collector.git
