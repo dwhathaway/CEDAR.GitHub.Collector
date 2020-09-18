@@ -59,7 +59,7 @@ namespace Microsoft.CloudMine.GitHub.Collectors.Web
                     string typePart = parts[1];
                     if (typePart.Equals(RelNext))
                     {
-                        // urlPart contains "<" at the beginning and ">" at the end. Trim to get the actualy URL.
+                        // urlPart contains "<" at the beginning and ">" at the end. Trim to get the actually URL.
                         string url = urlPart.Substring(1, urlPart.Length - 2);
                         this.CurrentUrl = url;
                         this.HasNext = true;
