@@ -19,7 +19,7 @@ namespace Microsoft.CloudMine.GitHub.Collectors.Processor
     {
         private readonly static int EventCountLimit;
         private const int DefaultEventCountLimit = 100;
-        
+
         private readonly string requestBody;
         private readonly WebhookProcessorContext context;
         private readonly IAuthentication authentication;
@@ -89,7 +89,7 @@ namespace Microsoft.CloudMine.GitHub.Collectors.Processor
                 repositoryName = repositoryNameToken.Value<string>();
             }
 
-            // There have been GitHub payloads that are impossible to process because they are missing required attributes (e.g., organization, repository.id, etc.). 
+            // There have been GitHub payloads that are impossible to process because they are missing required attributes (e.g., organization, repository.id, etc.).
             // Instead of failing with a cryptic Newtonsoft JSON parsing error, handle these cases more graciously and log them in telemetry for future debugging and validation.
 
             if (!repositoryName.Equals(Repository.NoRepositoryName) && repositoryId == Repository.NoRepositoryId)
@@ -136,7 +136,9 @@ namespace Microsoft.CloudMine.GitHub.Collectors.Processor
 
             foreach(IRecordWriter recordWriter in this.recordWriters)
             {
-                recordWriter.SetOutputPathPrefix($"{repository.OrganizationId}/{repository.RepositoryId}");
+                recordWriter.AddOutputPathPart("OrganizationId", repository.OrganizationId.ToString());
+                recordWriter.AddOutputPathPart("RepositoryId", repository.RepositoryId.ToString());
+                // recordWriter.SetOutputPathPrefix($"{repository.OrganizationId}/{repository.RepositoryId}");
             }
 
             if (repository.IsValid())

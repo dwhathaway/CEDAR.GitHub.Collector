@@ -122,7 +122,7 @@ namespace Microsoft.CloudMine.GitHub.Collectors.Web
                 {
                     shallRetry = true;
                     delayBeforeRetry = delayBeforeRetries[attemptIndex - 1];
-                    
+
                     // If there is a RetryAfter already provided as part of the response, honor that instead of our internal delay.
                     long retryAfter = RateLimiter.GetRetryAfter(response.Headers);
                     if (retryAfter != long.MinValue)
@@ -223,13 +223,14 @@ namespace Microsoft.CloudMine.GitHub.Collectors.Web
 
         public async Task<JObject> PostAndParseAsJObjectAsync(string requestUrl, string requestBody, IAuthentication authentication, string apiName, List<HttpResponseSignature> whitelistedResponses)
         {
-            HttpResponseMessage response = await this.MakeRequestAsync(requestUrl,
-                                                                       authentication,
-                                                                       apiName,
-                                                                       eTag: String.Empty,
-                                                                       whitelistedResponses,
-                                                                       () => this.httpClient.PostAsync(requestUrl, requestBody, authentication, GitHubProductInfoHeaderValue)
-            ).ConfigureAwait(false);
+            var response = new HttpResponseMessage();
+            // HttpResponseMessage response = await this.MakeRequestAsync(requestUrl,
+            //                                                            authentication,
+            //                                                            apiName,
+            //                                                            eTag: String.Empty,
+            //                                                            whitelistedResponses,
+            //                                                            () => this.httpClient.PostAsync(requestUrl, requestBody, authentication, GitHubProductInfoHeaderValue)
+            // ).ConfigureAwait(false);
             return await HttpUtility.ParseAsJObjectAsync(response).ConfigureAwait(false);
         }
     }

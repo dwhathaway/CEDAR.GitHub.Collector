@@ -37,11 +37,12 @@ namespace Microsoft.CloudMine.GitHub.Collectors.Functions
 {
     public class GitHubFunctions
     {
-        public readonly string apiDomain;
+        private readonly string apiDomain;
         private readonly TelemetryClient telemetryClient;
         private readonly IHttpClient httpClient;
         private readonly IAdlsClient adlsClient;
         private readonly GitHubConfigManager configManager;
+        private readonly bool notifyUpstream;
 
         // Using dependency injection will guarantee that you use the same configuration for telemetry collected automatically and manually.
         public GitHubFunctions(TelemetryConfiguration telemetryConfiguration, IHttpClient httpClient, IAdlsClient adlsClient, GitHubConfigManager configManager)
@@ -52,6 +53,9 @@ namespace Microsoft.CloudMine.GitHub.Collectors.Functions
             this.adlsClient = adlsClient;
             this.configManager = configManager;
             this.configManager.SetTelemetryClient(this.telemetryClient);
+
+            // Check to see if the functions should notify upstream processing resources of ingestion files
+            bool.TryParse(Environment.GetEnvironmentVariable("NotifyUpstream"), out this.notifyUpstream);
 
             if (this.adlsClient.AdlsClient == null)
             {
@@ -196,7 +200,7 @@ namespace Microsoft.CloudMine.GitHub.Collectors.Functions
                 List<IRecordWriter> recordWriters;
                 using (storageManager = this.configManager.GetStorageManager(context.CollectorType, telemetryClient))
                 {
-                    recordWriters = storageManager.InitializeRecordWriters(identifier: functionContext.EventType, functionContext, contextWriter, this.adlsClient.AdlsClient);
+                    recordWriters = storageManager.InitializeRecordWriters(identifier: functionContext.EventType, functionContext, contextWriter, this.adlsClient.AdlsClient, this.notifyUpstream);
                     WebHookProcessor processor = new WebHookProcessor(requestBody, functionContext, authentication, httpClient, recordWriters, eventsBookkeeper, recordsCache, collectorCache, telemetryClient, this.apiDomain);
                     additionalTelemetryProperties = await processor.ProcessAsync().ConfigureAwait(false);
 
@@ -317,8 +321,11 @@ namespace Microsoft.CloudMine.GitHub.Collectors.Functions
 
                     foreach (IRecordWriter recordWriter in recordWriters)
                     {
-                        recordWriter.SetOutputPathPrefix($"{repositoryDetails.OrganizationId}/{repositoryDetails.RepositoryId}");
+                        recordWriter.AddOutputPathPart("OrganizationId", repositoryDetails.OrganizationId.ToString());
+                        recordWriter.AddOutputPathPart("RepositoryId", repositoryDetails.RepositoryId.ToString());
+                        //recordWriter.SetOutputPathPrefix($"{repositoryDetails.OrganizationId}/{repositoryDetails.RepositoryId}");
                     }
+
                     EventsTimelineProcessor processor = new EventsTimelineProcessor(context, authentication, recordWriters, httpClient, recordsCache, eventsTimelineCache, telemetryClient, this.apiDomain);
                     await processor.ProcessAsync(repositoryDetails).ConfigureAwait(false);
                 }
@@ -394,7 +401,9 @@ namespace Microsoft.CloudMine.GitHub.Collectors.Functions
                     recordWriters = storageManager.InitializeRecordWriters(identifier, context, contextWriter, this.adlsClient.AdlsClient);
                     foreach (IRecordWriter recordWriter in recordWriters)
                     {
-                        recordWriter.SetOutputPathPrefix($"{repositoryDetails.OrganizationId}/{repositoryDetails.RepositoryId}");
+                        recordWriter.AddOutputPathPart("OrganizationId", repositoryDetails.OrganizationId.ToString());
+                        recordWriter.AddOutputPathPart("RepositoryId", repositoryDetails.RepositoryId.ToString());
+                        //recordWriter.SetOutputPathPrefix($"{repositoryDetails.OrganizationId}/{repositoryDetails.RepositoryId}");
                     }
                     OnboardingProcessor processor = new OnboardingProcessor(authentication, recordWriters, httpClient, onboardingCache, onboardingQueue, telemetryClient, this.apiDomain);
                     await processor.ProcessAsync(onboardingInput).ConfigureAwait(false);
@@ -543,10 +552,14 @@ namespace Microsoft.CloudMine.GitHub.Collectors.Functions
                 using (storageManager = this.configManager.GetStorageManager(context.CollectorType, telemetryClient))
                 {
                     recordWriters = storageManager.InitializeRecordWriters(identifier, context, contextWriter, this.adlsClient.AdlsClient);
+
                     foreach (IRecordWriter recordWriter in recordWriters)
                     {
-                        recordWriter.SetOutputPathPrefix($"{repositoryDetails.OrganizationId}/{repositoryDetails.RepositoryId}");
+                        recordWriter.AddOutputPathPart("OrganizationId", repositoryDetails.OrganizationId.ToString());
+                        recordWriter.AddOutputPathPart("RepositoryId", repositoryDetails.RepositoryId.ToString());
+                        //recordWriter.SetOutputPathPrefix($"{repositoryDetails.OrganizationId}/{repositoryDetails.RepositoryId}");
                     }
+
                     TrafficProcessor processor = new TrafficProcessor(authentication, recordWriters, httpClient, telemetryClient, this.apiDomain);
                     await processor.ProcessAsync(repositoryDetails).ConfigureAwait(false);
                 }

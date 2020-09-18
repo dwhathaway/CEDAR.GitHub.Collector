@@ -247,7 +247,7 @@ namespace Microsoft.CloudMine.GitHub.Collectors.Processor
             }
             await this.ProcessAndCacheBatchingRequestAsync(onboardingInput, issuesNode).ConfigureAwait(false);
 
-            // Uses the date 1960 as an abitrary date before any issue comments could have been created. Cannot use DateTime.minValue becasue GitHub API will throw an error
+            // Uses the date 1960 as an arbitrary date before any issue comments could have been created. Cannot use DateTime.minValue because GitHub API will throw an error
             DateTime since = new DateTime(1960, 1, 1, 1, 0, 0);
             foreach (IRecordWriter recordWriter in this.recordWriters)
             {
@@ -283,7 +283,7 @@ namespace Microsoft.CloudMine.GitHub.Collectors.Processor
                 {
                     List<CollectionNode> result = new List<CollectionNode>();
                     issueCommentCount++;
-                    // GitHub API can only support 400 pages with 100 issue comments on each page, after 40k comments a new query is needed to retrieve more issue comments  
+                    // GitHub API can only support 400 pages with 100 issue comments on each page, after 40k comments a new query is needed to retrieve more issue comments
                     if (issueCommentCount == 40000)
                     {
                         issueCommentCount = 0;
@@ -311,7 +311,7 @@ namespace Microsoft.CloudMine.GitHub.Collectors.Processor
                         { "ApiName", apiName },
                     };
                     this.telemetryClient.TrackEvent("OnboardingIgnoredApi", properties);
-                     
+
                     return;
                 }
             }
