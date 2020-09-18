@@ -43,7 +43,7 @@ namespace Microsoft.CloudMine.GitHub.Collectors.Functions
         private readonly IHttpClient httpClient;
         private readonly IAdlsClient adlsClient;
         private readonly GitHubConfigManager configManager;
-        private readonly bool notifyUpstream;
+        private readonly bool notifyDownstream;
 
         // Using dependency injection will guarantee that you use the same configuration for telemetry collected automatically and manually.
         public GitHubFunctions(TelemetryConfiguration telemetryConfiguration, IHttpClient httpClient, IAdlsClient adlsClient, GitHubConfigManager configManager)
@@ -55,8 +55,8 @@ namespace Microsoft.CloudMine.GitHub.Collectors.Functions
             this.configManager = configManager;
             this.configManager.SetTelemetryClient(this.telemetryClient);
 
-            // Check to see if the functions should notify upstream processing resources of ingestion files
-            bool.TryParse(Environment.GetEnvironmentVariable("NotifyUpstream"), out this.notifyUpstream);
+            // Check to see if the functions should notify downstream processing resources of ingestion files
+            bool.TryParse(Environment.GetEnvironmentVariable("NotifyDownstream"), out this.notifyDownstream);
 
             if (this.adlsClient.AdlsClient == null)
             {
@@ -201,7 +201,7 @@ namespace Microsoft.CloudMine.GitHub.Collectors.Functions
                 List<IRecordWriter> recordWriters;
                 using (storageManager = this.configManager.GetStorageManager(context.CollectorType, telemetryClient))
                 {
-                    recordWriters = storageManager.InitializeRecordWriters(identifier: functionContext.EventType, functionContext, contextWriter, this.adlsClient.AdlsClient, this.notifyUpstream);
+                    recordWriters = storageManager.InitializeRecordWriters(identifier: functionContext.EventType, functionContext, contextWriter, this.adlsClient.AdlsClient, this.notifyDownstream);
                     WebHookProcessor processor = new WebHookProcessor(requestBody, functionContext, authentication, httpClient, recordWriters, eventsBookkeeper, recordsCache, collectorCache, telemetryClient, this.apiDomain);
                     additionalTelemetryProperties = await processor.ProcessAsync().ConfigureAwait(false);
 
